@@ -34,7 +34,7 @@ def test_all():
     stopper = EpisodeStepStopper(200)
     driver = EnvironmentDriver(env, actor, alpha_setter, gamma_setter, learner, stopper, stopper)
 
-    driver.run_training_episodes(3000)
+    driver.run_training_episodes(300)
 
     policy = actor.generate_policy(env.get_num_states(), env.get_num_actions())
     env.render_policy(policy)

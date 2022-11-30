@@ -18,16 +18,10 @@ class DiscreteQLearner:
     def set_Q_values(self, newQ):
         self.Q[:,:] = newQ
     
-    def update(self, sim_state):
-        alpha = sim_state.get_alpha()
-        gamma = sim_state.get_gamma()
-        reward = sim_state.get_reward_a()
-        new_state = sim_state.get_state_b()
-        prev_state = sim_state.get_state_a()
-        prev_action = sim_state.get_action_a()
 
+    def update(self, alpha, gamma, state_a, action_a, reward_a, state_b):
         dQ = alpha * (
-            reward + gamma * self.Q[new_state].max() - self.Q[prev_state, prev_action]
+            reward_a + gamma * self.Q[state_b].max() - self.Q[state_a, action_a]
         )
 
-        self.Q[prev_state, prev_action] += dQ
+        self.Q[state_a, action_a] += dQ
