@@ -2,6 +2,7 @@ import numpy as np
 
 from utils.math import prob_choose
 from utils.strings import str_find_all
+from utils.terminal_formatting import TerminalFormatting as tf
 
 class MazeEnvironment:
     def __init__(
@@ -78,7 +79,7 @@ class MazeEnvironment:
         self._last_render_string = ""
 
 
-    def render(self, only_new=False, do_print=True):
+    def render(self, only_new=False, do_print=True, colorize_return=False):
         # Returns a string representation of the environment. do_print 
         # controls whether it also gets printed to stdout. If do_print is 
         # true, only_new controls whether only representations which differ 
@@ -97,17 +98,42 @@ class MazeEnvironment:
         return ""
 
 
-    def render_policy(self, policy, do_print=True):
+    def render_policy(self, policy, do_print=True, format_dict=None):
         # Returns a string representation of the given policy in the 
         # environment. do_print controls whether it also gets printed to 
         # stdout.
 
+        if format_dict is None:
+            format_dict = {}
+
         render_map = [list(s) for s in self._map]
         action_map = "<>^v"
         for state in range(self._num_states):
+            loc = self._state_to_pos(state)
+            
             if state not in self._wall_states and state not in self._goal_states:
-                loc = self._state_to_pos(state)
                 render_map[loc[1]][loc[0]] = action_map[policy[state]]
+            
+            fmt_a, fmt_b = "", ""
+            state_type = self._flat_map[state]
+            if state_type in format_dict:
+                fmt_ab = format_dict[state_type]
+                if isinstance(fmt_ab, tuple):
+                    fmt_a, fmt_b = fmt_ab
+                else:
+                    fmt_a = fmt_ab
+                    fmt_b = tf.DEFAULT
+            elif state in self._start_states:
+                fmt_a = tf.BG_LIGHT_BLUE
+                fmt_b = tf.DEFAULT
+            elif state in self._goal_states:
+                fmt_a = tf.BG_GREEN
+                fmt_b = tf.DEFAULT
+            elif state in self._wall_states:
+                fmt_a = tf.BG_GRAY
+                fmt_b = tf.DEFAULT
+            render_map[loc[1]][loc[0]] = fmt_a + render_map[loc[1]][loc[0]] + fmt_b
+
         render_string = "\n".join("".join(line) for line in render_map)
         if do_print:
             print(render_string)
