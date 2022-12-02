@@ -1,10 +1,14 @@
 import numpy as np
 
+from utils.smart_api import smart_api_method
+
+
 class TestQLearningActor:
     def __init__(self, qlearner, epsilon=0.05):
         self.qlearner = qlearner
         self.epsilon = epsilon
 
+    @smart_api_method
     def choose(self, num_actions, state_a):
         # action = choose(num_actions, state_a) : Called during learning, and 
         #   returns an action to be taken -- ie. a number in 

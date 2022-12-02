@@ -1,6 +1,4 @@
-from utils.smart_api import SmartAPI
-
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field
 
 
 @dataclass
@@ -42,55 +40,36 @@ class EnvironmentDriver:
         self.learner = learner
         self.training_stopper = training_stopper
         self.run_stopper = run_stopper
-
-        self.api = SmartAPI()
     
 
     def run_episode(self, episode_number, training=False, render=False, new_only=True):
         stopper = self.training_stopper if training else self.run_stopper
 
-        # sim = {
-        #     "env": self.env, 
-        #     "num_states": self.env.get_num_states(), 
-        #     "num_actions": self.env.get_num_actions(), 
-        #     "episode": episode_number, 
-        #     "episode_step": -1, 
-        #     "episode_reward": 0, 
-        #     "done": False, 
-        # }
         sim = SimState(self.env, episode_number)
-
-        # sim["state_a"] = self.env.reset()
         sim.state_a = self.env.reset()
 
-        # while not sim["done"]:
         while not sim.done:
             # sim["episode_step"] += 1
             sim.episode_step += 1
 
             # Choose action to take
-            # sim["action_a"] = cwrp(sim, self.actor.choose)
-            sim.action_a = self.api.cwrp(asdict(sim), self.actor.choose)
+            sim.action_a = self.actor.choose(sim)
 
             if training:
-                # sim["alpha"] = cwrp(sim, self.alpha_setter.get_value)
-                # sim["gamma"] = cwrp(sim, self.gamma_setter.get_value)
-                sim.alpha = self.api.cwrp(asdict(sim), self.alpha_setter.get_value)
-                sim.gamma = self.api.cwrp(asdict(sim), self.gamma_setter.get_value)
+                sim.alpha = self.alpha_setter.get_value(sim)
+                sim.gamma = self.gamma_setter.get_value(sim)
 
             # Take the action
-            # sim["state_b"], sim["reward_a"], sim["done"], info = self.env.step( sim["action_a"] )
-            # sim["episode_reward"] += sim["reward_a"]
             sim.state_b, sim.reward_a, sim.done, info = self.env.step( sim.action_a )
             sim.episode_reward += sim.reward_a
             
             # Give feedback to learner so it can learn
             if training:
-                self.api.cwrp(asdict(sim), self.learner.update)
+                self.learner.update(sim)
 
             # Check stop conditions
             if stopper is not None:
-                if self.api.cwrp(asdict(sim), stopper.should_stop):
+                if stopper.should_stop(sim):
                     break
             elif sim.done:
                 break

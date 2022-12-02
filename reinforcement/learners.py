@@ -1,5 +1,7 @@
 import numpy as np
 
+from utils.smart_api import smart_api_method
+
 
 class DiscreteQLearner:
     # Only handles discrete environments.
@@ -19,6 +21,7 @@ class DiscreteQLearner:
         self.Q[:,:] = newQ
     
 
+    @smart_api_method
     def update(self, alpha, gamma, state_a, action_a, reward_a, state_b):
         dQ = alpha * (
             reward_a + gamma * self.Q[state_b].max() - self.Q[state_a, action_a]
